@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Opportunity 360 Card</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --card-bg: linear-gradient(160deg, #1b4f72 0%, #1a5276 30%, #1f618d 60%, #1b4f72 100%);
+            --text-white: #ffffff;
+            --text-light: rgba(255,255,255,0.85);
+            --text-muted: rgba(255,255,255,0.6);
+            --divider: rgba(255,255,255,0.15);
+            --icon-bg: rgba(255,255,255,0.12);
+            --icon-border: rgba(255,255,255,0.25);
+            --edit-hover: rgba(255,255,255,0.08);
+            --bar-track: rgba(255,255,255,0.2);
+            --radius: 16px;
+            --radius-sm: 10px;
+            --transition: 0.2s ease;
+        }
+
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: transparent;
+            margin: 0;
+            padding: 0;
+            min-height: 100%;
+            overflow-x: hidden;
+        }
+
+        /* ─── Card Container ────────────────────── */
+        .opp-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 28px 24px 24px;
+            color: var(--text-white);
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* ─── Loading / Error States ────────────── */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            gap: 12px;
+        }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid rgba(255,255,255,0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 13px; color: var(--text-light); }
+        .error-state { padding: 32px; text-align: center; }
+        .error-state h3 { margin-bottom: 8px; color: #fff; }
+        .error-state p { color: var(--text-light); font-size: 13px; }
+        .hidden { display: none !important; }
+
+        /* ─── Header ────────────────────────────── */
+        .header { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; }
+
+        .opp-icon-wrapper {
+            width: 64px; height: 64px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            border: 3px solid #d4a843;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-white);
+            background: rgba(255,255,255,0.12);
+            position: relative;
+            overflow: hidden;
+        }
+        .opp-icon-wrapper img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .header-info { flex: 1; min-width: 0; }
+        .opp-name {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.2px;
+            word-break: break-word;
+        }
+        .opp-account {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-top: 3px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1px 4px;
+            border-radius: 4px;
+            transition: background var(--transition);
+        }
+        .opp-account:hover { background: var(--edit-hover); text-decoration: underline; }
+        .opp-account svg { width: 12px; height: 12px; fill: currentColor; opacity: 0.6; }
+
+        /* ─── KPI Strip ─────────────────────────── */
+        .kpi-strip {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--divider);
+        }
+        .kpi-box {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: var(--radius-sm);
+            padding: 14px;
+            cursor: pointer;
+            transition: background var(--transition);
+        }
+        .kpi-box:hover { background: rgba(255,255,255,0.14); }
+        .kpi-box.full-width { grid-column: 1 / -1; }
+        .kpi-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .kpi-label svg { width: 14px; height: 14px; fill: var(--text-muted); }
+        .kpi-value {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-white);
+            line-height: 1.2;
+        }
+        .kpi-sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* ─── Probability bar ───────────────────── */
+        .prob-bar-wrapper { margin-top: 8px; }
+        .prob-bar {
+            height: 8px;
+            background: rgba(0,0,0,0.25);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .prob-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+        }
+        .prob-fill.red { background: #e74c3c; }
+        .prob-fill.yellow { background: #f5a623; }
+        .prob-fill.green { background: #4cd964; }
+
+        /* ─── Info Rows ─────────────────────────── */
+        .info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 18px 0;
+            border-bottom: 1px solid var(--divider);
+        }
+        .info-section:last-child { border-bottom: none; }
+
+        .info-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            cursor: pointer;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: background var(--transition);
+        }
+        .info-row:hover { background: var(--edit-hover); }
+        .info-row.no-edit { cursor: default; }
+        .info-row.no-edit:hover { background: transparent; }
+
+        .info-icon {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: var(--icon-bg);
+            border: 1px solid var(--icon-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+        .info-icon svg { width: 16px; height: 16px; fill: var(--text-white); }
+
+        .info-content { flex: 1; min-width: 0; }
+        .info-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 1px;
+        }
+        .info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-white);
+            word-break: break-word;
+        }
+        .info-value.empty { color: var(--text-muted); font-style: italic; font-weight: 400; }
+
+        /* ─── Status Pills ──────────────────────── */
+        .status-pill {
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-pill.green { background: rgba(0,60,0,0.7); color: #6ef28e; }
+        .status-pill.yellow { background: rgba(80,50,0,0.7); color: #ffd06a; }
+        .status-pill.red { background: rgba(80,10,10,0.7); color: #ff8a80; }
+        .status-pill.blue { background: rgba(0,40,80,0.7); color: #8ad8ff; }
+
+        /* ─── Inline Edit ───────────────────────── */
+        .inline-edit {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            margin-top: 4px;
+        }
+        .inline-edit.active { display: flex; }
+        .inline-edit input {
+            flex: 1;
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            font-size: 13px;
+            font-family: inherit;
+            outline: none;
+        }
+        .inline-edit input::placeholder { color: rgba(255,255,255,0.4); }
+        .inline-edit input:focus {
+            border-color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.2);
+        }
+        .edit-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            border-radius: 6px;
+            color: #fff;
+            cursor: pointer;
+            padding: 6px 8px;
+            font-size: 12px;
+            transition: background var(--transition);
+        }
+        .edit-btn:hover { background: rgba(255,255,255,0.3); }
+        .edit-btn.save { background: rgba(76,217,100,0.4); }
+        .edit-btn.save:hover { background: rgba(76,217,100,0.6); }
+        .edit-btn.cancel { background: rgba(255,59,48,0.3); }
+        .edit-btn.cancel:hover { background: rgba(255,59,48,0.5); }
+
+        /* ─── Stakeholders Section ──────────────── */
+        .stakeholders-section {
+            padding: 18px 0;
+        }
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-white);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title svg { width: 16px; height: 16px; fill: var(--text-white); }
+        .section-title .count-badge {
+            background: rgba(255,255,255,0.15);
+            padding: 1px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-light);
+        }
+
+        .stakeholder-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .stakeholder-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 10px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            cursor: pointer;
+            transition: background var(--transition);
+        }
+        .stakeholder-item:hover { background: rgba(255,255,255,0.12); }
+        .stakeholder-avatar {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-white);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .stakeholder-avatar img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .stakeholder-info { flex: 1; min-width: 0; }
+        .stakeholder-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-white);
+        }
+        .stakeholder-role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+        .no-data-msg {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-style: italic;
+            padding: 6px 0;
+        }
+
+        /* ─── Toast ─────────────────────────────── */
+        .toast {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(0,0,0,0.8);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            z-index: 1000;
+        }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+
+    <!-- Loading State -->
+    <div id="loading-screen" class="loading-state">
+        <div class="spinner"></div>
+        <div class="loading-text">Loading opportunity...</div>
+    </div>
+
+    <!-- Error State -->
+    <div id="error-screen" class="error-state hidden">
+        <h3>Unable to load opportunity</h3>
+        <p id="error-message">Could not retrieve opportunity data.</p>
+    </div>
+
+    <!-- Opportunity Card -->
+    <div id="opp-card" class="opp-card hidden">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="opp-icon-wrapper" id="opp-icon">
+                <span id="opp-initials"></span>
+            </div>
+            <div class="header-info">
+                <div class="opp-name" id="opp-name"></div>
+                <div class="opp-account" id="opp-account" title="Click to open account record">
+                    <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                    <span id="account-name-label"></span>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI Strip -->
+        <div class="kpi-strip">
+            <!-- Estimated Revenue -->
+            <div class="kpi-box" id="kpi-revenue" onclick="startEditKpi('revenue')">
+                <div class="kpi-label">
+                    <svg viewBox="0 0 24 24"><path d="M11.8 10.9c-2.27-.59-3-1.2-3-2.15 0-1.09 1.01-1.85 2.7-1.85 1.78 0 2.44.85 2.5 2.1h2.21c-.07-1.72-1.12-3.3-3.21-3.81V3h-3v2.16c-1.94.42-3.5 1.68-3.5 3.61 0 2.31 1.91 3.46 4.7 4.13 2.5.6 3 1.48 3 2.41 0 .69-.49 1.79-2.7 1.79-2.06 0-2.87-.92-2.98-2.1h-2.2c.12 2.19 1.76 3.42 3.68 3.83V21h3v-2.15c1.95-.37 3.5-1.5 3.5-3.55 0-2.84-2.43-3.81-4.7-4.4z"/></svg>
+                    Estimated Revenue
+                </div>
+                <div class="kpi-value" id="val-revenue">—</div>
+                <div class="inline-edit" id="edit-revenue">
+                    <input type="number" id="input-revenue" placeholder="e.g., 125000" step="0.01" />
+                    <button class="edit-btn save" onclick="event.stopPropagation(); saveKpiField('estimatedvalue','input-revenue','revenue','money')">&#10003;</button>
+                    <button class="edit-btn cancel" onclick="event.stopPropagation(); cancelKpiEdit('revenue')">&#10007;</button>
+                </div>
+            </div>
+
+            <!-- Probability -->
+            <div class="kpi-box" id="kpi-probability" onclick="startEditKpi('probability')">
+                <div class="kpi-label">
+                    <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14l-5-5 1.41-1.41L12 14.17l7.59-7.59L21 8l-9 9z"/></svg>
+                    Probability
+                </div>
+                <div class="kpi-value" id="val-probability">—</div>
+                <div class="prob-bar-wrapper">
+                    <div class="prob-bar"><div class="prob-fill" id="bar-probability"></div></div>
+                </div>
+                <div class="inline-edit" id="edit-probability">
+                    <input type="number" id="input-probability" placeholder="0-100" min="0" max="100" />
+                    <button class="edit-btn save" onclick="event.stopPropagation(); saveKpiField('closeprobability','input-probability','probability','integer')">&#10003;</button>
+                    <button class="edit-btn cancel" onclick="event.stopPropagation(); cancelKpiEdit('probability')">&#10007;</button>
+                </div>
+            </div>
+
+            <!-- Days Until Close -->
+            <div class="kpi-box" id="kpi-close" onclick="startEditKpi('close')">
+                <div class="kpi-label">
+                    <svg viewBox="0 0 24 24"><path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM9 10H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2z"/></svg>
+                    Days Until Close
+                </div>
+                <div class="kpi-value" id="val-close-days">—</div>
+                <div class="kpi-sub" id="val-close-date"></div>
+                <div class="inline-edit" id="edit-close">
+                    <input type="date" id="input-close" />
+                    <button class="edit-btn save" onclick="event.stopPropagation(); saveCloseDate()">&#10003;</button>
+                    <button class="edit-btn cancel" onclick="event.stopPropagation(); cancelKpiEdit('close')">&#10007;</button>
+                </div>
+            </div>
+
+            <!-- Days Since Last Activity -->
+            <div class="kpi-box no-edit" style="cursor: default;" onclick="">
+                <div class="kpi-label">
+                    <svg viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                    Days Since Last Activity
+                </div>
+                <div class="kpi-value" id="val-activity-days">—</div>
+                <div class="kpi-sub" id="val-activity-detail"></div>
+            </div>
+        </div>
+
+        <!-- Account Info Row -->
+        <div class="info-section">
+            <div class="info-row no-edit" id="row-account" onclick="navigateToAccount()">
+                <div class="info-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
+                </div>
+                <div class="info-content">
+                    <div class="info-label">Account</div>
+                    <div class="info-value" id="val-account">—</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stakeholders Section -->
+        <div class="stakeholders-section">
+            <div class="section-title">
+                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+                Stakeholders
+                <span class="count-badge" id="stakeholder-count">0</span>
+            </div>
+            <div class="stakeholder-list" id="stakeholder-list">
+                <div class="no-data-msg">Loading stakeholders...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        // ─── Globals ────────────────────────────────────────────
+        let opportunityId = null;
+        let opportunityData = null;
+        let parentAccountId = null;
+        let crmBaseUrl = "";
+
+        // ─── Xrm Context ───────────────────────────────────────
+        function getXrmContext() {
+            if (window.parent && window.parent.Xrm && window.parent.Xrm.Page) return window.parent.Xrm;
+            if (window.parent && window.parent.Xrm && window.parent.Xrm.Utility) return window.parent.Xrm;
+            return null;
+        }
+
+        function getRecordIdFromContext() {
+            // Method 1: Xrm.Page (classic)
+            try {
+                const xrm = getXrmContext();
+                if (xrm && xrm.Page && xrm.Page.data && xrm.Page.data.entity) {
+                    const id = xrm.Page.data.entity.getId();
+                    if (id) return id.replace(/[{}]/g, "");
+                }
+            } catch (e) { /* ignore */ }
+
+            // Method 2: URL query parameter
+            const params = new URLSearchParams(window.location.search);
+            const dataParam = params.get("data");
+            if (dataParam) {
+                try {
+                    const parsed = JSON.parse(decodeURIComponent(dataParam));
+                    if (parsed.id) return parsed.id.replace(/[{}]/g, "");
+                } catch (e) { /* ignore */ }
+            }
+            const idParam = params.get("id");
+            if (idParam) return idParam.replace(/[{}]/g, "");
+
+            // Method 3: Try parent URL
+            try {
+                const parentUrl = window.parent.location.href;
+                const match = parentUrl.match(/id=([0-9a-f-]{36})/i);
+                if (match) return match[1];
+            } catch (e) { /* cross-origin */ }
+
+            return null;
+        }
+
+        function getCrmBaseUrl() {
+            try {
+                const xrm = getXrmContext();
+                if (xrm && xrm.Utility && xrm.Utility.getGlobalContext) {
+                    return xrm.Utility.getGlobalContext().getClientUrl();
+                }
+                if (xrm && xrm.Page && xrm.Page.context) {
+                    return xrm.Page.context.getClientUrl();
+                }
+            } catch (e) { /* ignore */ }
+
+            const origin = window.location.origin;
+            if (origin.includes(".dynamics.com") || origin.includes(".crm")) return origin;
+            return "https://hyagom.crm.dynamics.com";
+        }
+
+        // ─── API Helpers ────────────────────────────────────────
+        async function crmApiFetch(url, options) {
+            const apiBase = crmBaseUrl + "/api/data/v9.2";
+            const defaults = {
+                headers: {
+                    "Accept": "application/json",
+                    "OData-MaxVersion": "4.0",
+                    "OData-Version": "4.0",
+                    "Content-Type": "application/json",
+                    "Prefer": 'odata.include-annotations="*"',
+                },
+            };
+            const merged = { ...defaults, ...options };
+            merged.headers = { ...defaults.headers, ...(options?.headers || {}) };
+            const res = await fetch(apiBase + url, merged);
+            if (!res.ok) {
+                const err = await res.text();
+                throw new Error("API error " + res.status + ": " + err);
+            }
+            if (res.status === 204) return null;
+            return res.json();
+        }
+
+        // ─── Fetch Opportunity ──────────────────────────────────
+        async function fetchOpportunity() {
+            const select = [
+                "name", "estimatedvalue", "closeprobability",
+                "estimatedclosedate", "_parentaccountid_value",
+                "statecode", "statuscode",
+            ].join(",");
+            return await crmApiFetch("/opportunities(" + opportunityId + ")?$select=" + select);
+        }
+
+        // ─── Fetch Last Activity ────────────────────────────────
+        async function fetchLastActivity() {
+            try {
+                const data = await crmApiFetch(
+                    "/activitypointers?$filter=_regardingobjectid_value eq " + opportunityId +
+                    "&$select=subject,activitytypecode,actualend,modifiedon" +
+                    "&$orderby=modifiedon desc&$top=1"
+                );
+                if (data && data.value && data.value.length > 0) return data.value[0];
+            } catch (e) { /* ignore */ }
+            return null;
+        }
+
+        // ─── Fetch Stakeholders (Connections) ───────────────────
+        async function fetchStakeholders() {
+            try {
+                const data = await crmApiFetch(
+                    "/connections?$filter=_record1id_value eq " + opportunityId +
+                    " or _record2id_value eq " + opportunityId +
+                    "&$select=_record1id_value,_record2id_value," +
+                    "record1id_entitytype,record2id_entitytype," +
+                    "_record1roleid_value,_record2roleid_value" +
+                    "&$orderby=createdon desc"
+                );
+                if (data && data.value) return data.value;
+            } catch (e) { /* ignore */ }
+            return [];
+        }
+
+        // ─── Fetch Account Image ────────────────────────────────
+        async function fetchAccountImage(accountId) {
+            try {
+                const data = await crmApiFetch("/accounts(" + accountId + ")?$select=entityimage_url");
+                if (data && data.entityimage_url) return crmBaseUrl + data.entityimage_url;
+            } catch (e) { /* ignore */ }
+            return null;
+        }
+
+        // ─── Update Opportunity ─────────────────────────────────
+        async function updateOpportunity(fields) {
+            await crmApiFetch("/opportunities(" + opportunityId + ")", {
+                method: "PATCH",
+                body: JSON.stringify(fields),
+            });
+        }
+
+        // ─── Utilities ─────────────────────────────────────────
+        function getInitials(name) {
+            if (!name) return "?";
+            return name.split(/\s+/).map(w => w[0]).filter(Boolean).slice(0, 2).join("").toUpperCase();
+        }
+
+        function formatCurrency(value) {
+            if (value == null) return "—";
+            return "$" + Number(value).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return "";
+            const d = new Date(dateStr);
+            return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+        }
+
+        function daysBetween(date1, date2) {
+            const d1 = new Date(date1); d1.setHours(0, 0, 0, 0);
+            const d2 = new Date(date2); d2.setHours(0, 0, 0, 0);
+            return Math.round((d1 - d2) / (1000 * 60 * 60 * 24));
+        }
+
+        function getBarColor(pct) {
+            if (pct >= 70) return "green";
+            if (pct >= 40) return "yellow";
+            return "red";
+        }
+
+        function getActivityStatusColor(days) {
+            if (days <= 3) return "green";
+            if (days <= 14) return "yellow";
+            return "red";
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById("toast");
+            t.textContent = msg;
+            t.classList.add("show");
+            setTimeout(() => t.classList.remove("show"), 2500);
+        }
+
+        function showError(msg) {
+            document.getElementById("loading-screen").classList.add("hidden");
+            document.getElementById("opp-card").classList.add("hidden");
+            document.getElementById("error-screen").classList.remove("hidden");
+            document.getElementById("error-message").textContent = msg;
+        }
+
+        // ─── Rendering ─────────────────────────────────────────
+        function renderOpportunity(data) {
+            opportunityData = data;
+
+            // Header
+            document.getElementById("opp-name").textContent = data.name || "Unnamed Opportunity";
+            document.getElementById("opp-initials").textContent = getInitials(data.name || "?");
+
+            // Account name (from annotations)
+            const accountName = data["_parentaccountid_value@OData.Community.Display.V1.FormattedValue"] || "";
+            parentAccountId = data._parentaccountid_value || null;
+            document.getElementById("account-name-label").textContent = accountName || "No account";
+            document.getElementById("val-account").textContent = accountName || "No account linked";
+            if (!accountName) {
+                document.getElementById("val-account").classList.add("empty");
+                document.getElementById("opp-account").style.cursor = "default";
+            }
+
+            // Load account image if available
+            if (parentAccountId) {
+                fetchAccountImage(parentAccountId).then(imgUrl => {
+                    if (imgUrl) {
+                        const wrapper = document.getElementById("opp-icon");
+                        wrapper.innerHTML = '<img src="' + imgUrl + '" alt="Account" />';
+                    }
+                });
+            }
+
+            // Estimated Revenue
+            const revenue = data.estimatedvalue;
+            document.getElementById("val-revenue").textContent = revenue != null ? formatCurrency(revenue) : "—";
+
+            // Probability
+            const prob = data.closeprobability;
+            if (prob != null) {
+                document.getElementById("val-probability").textContent = prob + "%";
+                const bar = document.getElementById("bar-probability");
+                bar.style.width = prob + "%";
+                bar.className = "prob-fill " + getBarColor(prob);
+            } else {
+                document.getElementById("val-probability").textContent = "—";
+                document.getElementById("bar-probability").style.width = "0%";
+            }
+
+            // Days Until Close
+            renderCloseDate(data.estimatedclosedate);
+        }
+
+        function renderCloseDate(dateStr) {
+            const valDays = document.getElementById("val-close-days");
+            const valDate = document.getElementById("val-close-date");
+            if (dateStr) {
+                const days = daysBetween(new Date(dateStr), new Date());
+                if (days > 0) {
+                    valDays.textContent = days + " day" + (days !== 1 ? "s" : "");
+                } else if (days === 0) {
+                    valDays.textContent = "Today";
+                } else {
+                    valDays.innerHTML = '<span style="color:#ff8a80;">Overdue by ' + Math.abs(days) + " day" + (Math.abs(days) !== 1 ? "s" : "") + "</span>";
+                }
+                valDate.textContent = formatDate(dateStr);
+            } else {
+                valDays.textContent = "—";
+                valDate.textContent = "No close date set";
+            }
+        }
+
+        function renderLastActivity(activity) {
+            const valDays = document.getElementById("val-activity-days");
+            const valDetail = document.getElementById("val-activity-detail");
+            if (activity) {
+                const actDate = activity.actualend || activity.modifiedon;
+                const days = daysBetween(new Date(), new Date(actDate));
+                const color = getActivityStatusColor(days);
+                valDays.innerHTML = '<span class="status-pill ' + color + '">' + days + " day" + (days !== 1 ? "s" : "") + " ago</span>";
+                const typeName = activity["activitytypecode@OData.Community.Display.V1.FormattedValue"] || activity.activitytypecode || "";
+                const subject = activity.subject || "";
+                valDetail.textContent = (typeName ? typeName + ": " : "") + subject;
+            } else {
+                valDays.textContent = "No activities";
+                valDetail.textContent = "";
+            }
+        }
+
+        function renderStakeholders(connections) {
+            const list = document.getElementById("stakeholder-list");
+            const countEl = document.getElementById("stakeholder-count");
+
+            // Parse connections to get stakeholders (the "other" entity, not the opportunity)
+            const stakeholders = [];
+            const seen = new Set();
+            for (const conn of connections) {
+                let name, role, entityType, recordId;
+                if (conn._record1id_value === opportunityId) {
+                    name = conn["_record2id_value@OData.Community.Display.V1.FormattedValue"] || "";
+                    role = conn["_record2roleid_value@OData.Community.Display.V1.FormattedValue"] || conn["_record1roleid_value@OData.Community.Display.V1.FormattedValue"] || "";
+                    entityType = conn.record2id_entitytype || "";
+                    recordId = conn._record2id_value;
+                } else {
+                    name = conn["_record1id_value@OData.Community.Display.V1.FormattedValue"] || "";
+                    role = conn["_record1roleid_value@OData.Community.Display.V1.FormattedValue"] || conn["_record2roleid_value@OData.Community.Display.V1.FormattedValue"] || "";
+                    entityType = conn.record1id_entitytype || "";
+                    recordId = conn._record1id_value;
+                }
+                if (name && !seen.has(recordId)) {
+                    seen.add(recordId);
+                    stakeholders.push({ name, role, entityType, recordId });
+                }
+            }
+
+            countEl.textContent = stakeholders.length;
+
+            if (stakeholders.length === 0) {
+                list.innerHTML = '<div class="no-data-msg">No stakeholders connected</div>';
+                return;
+            }
+
+            list.innerHTML = "";
+            for (const s of stakeholders) {
+                const item = document.createElement("div");
+                item.className = "stakeholder-item";
+                item.title = "Click to open " + s.name;
+                item.onclick = function () { navigateToRecord(s.entityType, s.recordId); };
+                item.innerHTML =
+                    '<div class="stakeholder-avatar">' + getInitials(s.name) + '</div>' +
+                    '<div class="stakeholder-info">' +
+                        '<div class="stakeholder-name">' + escapeHtml(s.name) + '</div>' +
+                        '<div class="stakeholder-role">' + escapeHtml(s.role || s.entityType || "Connection") + '</div>' +
+                    '</div>';
+                list.appendChild(item);
+            }
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement("div");
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // ─── Navigation ─────────────────────────────────────────
+        function navigateToAccount() {
+            if (!parentAccountId) return;
+            navigateToRecord("account", parentAccountId);
+        }
+
+        function navigateToRecord(entityType, recordId) {
+            if (!entityType || !recordId) return;
+            try {
+                const xrm = getXrmContext();
+                if (xrm && xrm.Navigation && xrm.Navigation.openForm) {
+                    xrm.Navigation.openForm({ entityName: entityType, entityId: recordId });
+                    return;
+                }
+            } catch (e) { /* ignore */ }
+            window.open(crmBaseUrl + "/main.aspx?etn=" + entityType + "&id=" + recordId + "&pagetype=entityrecord", "_top");
+        }
+
+        // ─── Inline Editing (KPI boxes) ─────────────────────────
+        function startEditKpi(field) {
+            const editEl = document.getElementById("edit-" + field);
+            if (editEl.classList.contains("active")) return;
+            editEl.classList.add("active");
+
+            // Pre-fill
+            if (field === "revenue" && opportunityData) {
+                document.getElementById("input-revenue").value = opportunityData.estimatedvalue || "";
+            } else if (field === "probability" && opportunityData) {
+                document.getElementById("input-probability").value = opportunityData.closeprobability || "";
+            } else if (field === "close" && opportunityData && opportunityData.estimatedclosedate) {
+                document.getElementById("input-close").value = opportunityData.estimatedclosedate.substring(0, 10);
+            }
+
+            // Focus input
+            const input = editEl.querySelector("input");
+            if (input) setTimeout(() => input.focus(), 50);
+        }
+
+        function cancelKpiEdit(field) {
+            document.getElementById("edit-" + field).classList.remove("active");
+        }
+
+        async function saveKpiField(crmField, inputId, kpiName, type) {
+            const input = document.getElementById(inputId);
+            let value = input.value;
+
+            if (type === "money") value = value ? parseFloat(value) : null;
+            else if (type === "integer") value = value ? parseInt(value, 10) : null;
+
+            try {
+                const payload = {};
+                payload[crmField] = value;
+                await updateOpportunity(payload);
+
+                // Update local data
+                opportunityData[crmField] = value;
+
+                // Re-render the specific field
+                if (kpiName === "revenue") {
+                    document.getElementById("val-revenue").textContent = value != null ? formatCurrency(value) : "—";
+                } else if (kpiName === "probability") {
+                    if (value != null) {
+                        document.getElementById("val-probability").textContent = value + "%";
+                        const bar = document.getElementById("bar-probability");
+                        bar.style.width = value + "%";
+                        bar.className = "prob-fill " + getBarColor(value);
+                    } else {
+                        document.getElementById("val-probability").textContent = "—";
+                        document.getElementById("bar-probability").style.width = "0%";
+                    }
+                }
+
+                cancelKpiEdit(kpiName);
+                showToast("✔ Updated successfully");
+            } catch (err) {
+                showToast("✖ Save failed: " + err.message.substring(0, 80));
+            }
+        }
+
+        async function saveCloseDate() {
+            const input = document.getElementById("input-close");
+            const value = input.value || null;
+            try {
+                await updateOpportunity({ estimatedclosedate: value });
+                opportunityData.estimatedclosedate = value;
+                renderCloseDate(value);
+                cancelKpiEdit("close");
+                showToast("✔ Close date updated");
+            } catch (err) {
+                showToast("✖ Save failed: " + err.message.substring(0, 80));
+            }
+        }
+
+        // ─── Initialize ─────────────────────────────────────────
+        async function init() {
+            crmBaseUrl = getCrmBaseUrl();
+            opportunityId = getRecordIdFromContext();
+
+            if (!opportunityId) {
+                showError("No opportunity ID found. Please open this card from an opportunity record.");
+                return;
+            }
+
+            try {
+                // Fetch opportunity + activity + stakeholders in parallel
+                const [oppData, lastActivity, connections] = await Promise.all([
+                    fetchOpportunity(),
+                    fetchLastActivity(),
+                    fetchStakeholders(),
+                ]);
+
+                // Render everything
+                renderOpportunity(oppData);
+                renderLastActivity(lastActivity);
+                renderStakeholders(connections);
+
+                // Show card
+                document.getElementById("loading-screen").classList.add("hidden");
+                document.getElementById("opp-card").classList.remove("hidden");
+
+            } catch (err) {
+                showError("Failed to load opportunity: " + err.message);
+            }
+        }
+
+        // Boot
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", init);
+        } else {
+            init();
+        }
+    </script>
+</body>
+</html>
