@@ -278,82 +278,6 @@
         .edit-btn.cancel { background: rgba(255,59,48,0.3); }
         .edit-btn.cancel:hover { background: rgba(255,59,48,0.5); }
 
-        /* ─── Stakeholders Section ──────────────── */
-        .stakeholders-section {
-            padding: 18px 0;
-        }
-        .section-title {
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-white);
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .section-title svg { width: 16px; height: 16px; fill: var(--text-white); }
-        .section-title .count-badge {
-            background: rgba(255,255,255,0.15);
-            padding: 1px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--text-light);
-        }
-
-        .stakeholder-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        .stakeholder-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 8px 10px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.08);
-            cursor: pointer;
-            transition: background var(--transition);
-        }
-        .stakeholder-item:hover { background: rgba(255,255,255,0.12); }
-        .stakeholder-avatar {
-            width: 36px; height: 36px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.15);
-            border: 2px solid rgba(255,255,255,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--text-white);
-            flex-shrink: 0;
-            overflow: hidden;
-        }
-        .stakeholder-avatar img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-            border-radius: 50%;
-        }
-        .stakeholder-info { flex: 1; min-width: 0; }
-        .stakeholder-name {
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text-white);
-        }
-        .stakeholder-role {
-            font-size: 11px;
-            color: var(--text-muted);
-        }
-        .no-data-msg {
-            font-size: 13px;
-            color: var(--text-muted);
-            font-style: italic;
-            padding: 6px 0;
-        }
-
         /* ─── Toast ─────────────────────────────── */
         .toast {
             position: fixed;
@@ -396,10 +320,7 @@
             </div>
             <div class="header-info">
                 <div class="opp-name" id="opp-name"></div>
-                <div class="opp-account" id="opp-account" title="Click to open account record">
-                    <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
-                    <span id="account-name-label"></span>
-                </div>
+
             </div>
         </div>
 
@@ -462,30 +383,7 @@
             </div>
         </div>
 
-        <!-- Account Info Row -->
-        <div class="info-section">
-            <div class="info-row no-edit" id="row-account" onclick="navigateToAccount()">
-                <div class="info-icon">
-                    <svg viewBox="0 0 24 24"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
-                </div>
-                <div class="info-content">
-                    <div class="info-label">Account</div>
-                    <div class="info-value" id="val-account">—</div>
-                </div>
-            </div>
-        </div>
 
-        <!-- Stakeholders Section -->
-        <div class="stakeholders-section">
-            <div class="section-title">
-                <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-                Stakeholders
-                <span class="count-badge" id="stakeholder-count">0</span>
-            </div>
-            <div class="stakeholder-list" id="stakeholder-list">
-                <div class="no-data-msg">Loading stakeholders...</div>
-            </div>
-        </div>
     </div>
 
     <!-- Toast -->
@@ -495,7 +393,6 @@
         // ─── Globals ────────────────────────────────────────────
         let opportunityId = null;
         let opportunityData = null;
-        let parentAccountId = null;
         let crmBaseUrl = "";
 
         // ─── Xrm Context ───────────────────────────────────────
@@ -580,7 +477,7 @@
         async function fetchOpportunity() {
             const select = [
                 "name", "estimatedvalue", "closeprobability",
-                "estimatedclosedate", "_parentaccountid_value",
+                "estimatedclosedate",
                 "statecode", "statuscode",
             ].join(",");
             return await crmApiFetch("/opportunities(" + opportunityId + ")?$select=" + select);
@@ -599,30 +496,7 @@
             return null;
         }
 
-        // ─── Fetch Stakeholders (Connections) ───────────────────
-        async function fetchStakeholders() {
-            try {
-                const data = await crmApiFetch(
-                    "/connections?$filter=_record1id_value eq " + opportunityId +
-                    " or _record2id_value eq " + opportunityId +
-                    "&$select=_record1id_value,_record2id_value," +
-                    "record1id_entitytype,record2id_entitytype," +
-                    "_record1roleid_value,_record2roleid_value" +
-                    "&$orderby=createdon desc"
-                );
-                if (data && data.value) return data.value;
-            } catch (e) { /* ignore */ }
-            return [];
-        }
 
-        // ─── Fetch Account Image ────────────────────────────────
-        async function fetchAccountImage(accountId) {
-            try {
-                const data = await crmApiFetch("/accounts(" + accountId + ")?$select=entityimage_url");
-                if (data && data.entityimage_url) return crmBaseUrl + data.entityimage_url;
-            } catch (e) { /* ignore */ }
-            return null;
-        }
 
         // ─── Update Opportunity ─────────────────────────────────
         async function updateOpportunity(fields) {
@@ -689,26 +563,6 @@
             document.getElementById("opp-name").textContent = data.name || "Unnamed Opportunity";
             document.getElementById("opp-initials").textContent = getInitials(data.name || "?");
 
-            // Account name (from annotations)
-            const accountName = data["_parentaccountid_value@OData.Community.Display.V1.FormattedValue"] || "";
-            parentAccountId = data._parentaccountid_value || null;
-            document.getElementById("account-name-label").textContent = accountName || "No account";
-            document.getElementById("val-account").textContent = accountName || "No account linked";
-            if (!accountName) {
-                document.getElementById("val-account").classList.add("empty");
-                document.getElementById("opp-account").style.cursor = "default";
-            }
-
-            // Load account image if available
-            if (parentAccountId) {
-                fetchAccountImage(parentAccountId).then(imgUrl => {
-                    if (imgUrl) {
-                        const wrapper = document.getElementById("opp-icon");
-                        wrapper.innerHTML = '<img src="' + imgUrl + '" alt="Account" />';
-                    }
-                });
-            }
-
             // Estimated Revenue
             const revenue = data.estimatedvalue;
             document.getElementById("val-revenue").textContent = revenue != null ? formatCurrency(revenue) : "—";
@@ -763,79 +617,6 @@
                 valDays.textContent = "No activities";
                 valDetail.textContent = "";
             }
-        }
-
-        function renderStakeholders(connections) {
-            const list = document.getElementById("stakeholder-list");
-            const countEl = document.getElementById("stakeholder-count");
-
-            // Parse connections to get stakeholders (the "other" entity, not the opportunity)
-            const stakeholders = [];
-            const seen = new Set();
-            for (const conn of connections) {
-                let name, role, entityType, recordId;
-                if (conn._record1id_value === opportunityId) {
-                    name = conn["_record2id_value@OData.Community.Display.V1.FormattedValue"] || "";
-                    role = conn["_record2roleid_value@OData.Community.Display.V1.FormattedValue"] || conn["_record1roleid_value@OData.Community.Display.V1.FormattedValue"] || "";
-                    entityType = conn.record2id_entitytype || "";
-                    recordId = conn._record2id_value;
-                } else {
-                    name = conn["_record1id_value@OData.Community.Display.V1.FormattedValue"] || "";
-                    role = conn["_record1roleid_value@OData.Community.Display.V1.FormattedValue"] || conn["_record2roleid_value@OData.Community.Display.V1.FormattedValue"] || "";
-                    entityType = conn.record1id_entitytype || "";
-                    recordId = conn._record1id_value;
-                }
-                if (name && !seen.has(recordId)) {
-                    seen.add(recordId);
-                    stakeholders.push({ name, role, entityType, recordId });
-                }
-            }
-
-            countEl.textContent = stakeholders.length;
-
-            if (stakeholders.length === 0) {
-                list.innerHTML = '<div class="no-data-msg">No stakeholders connected</div>';
-                return;
-            }
-
-            list.innerHTML = "";
-            for (const s of stakeholders) {
-                const item = document.createElement("div");
-                item.className = "stakeholder-item";
-                item.title = "Click to open " + s.name;
-                item.onclick = function () { navigateToRecord(s.entityType, s.recordId); };
-                item.innerHTML =
-                    '<div class="stakeholder-avatar">' + getInitials(s.name) + '</div>' +
-                    '<div class="stakeholder-info">' +
-                        '<div class="stakeholder-name">' + escapeHtml(s.name) + '</div>' +
-                        '<div class="stakeholder-role">' + escapeHtml(s.role || s.entityType || "Connection") + '</div>' +
-                    '</div>';
-                list.appendChild(item);
-            }
-        }
-
-        function escapeHtml(str) {
-            const div = document.createElement("div");
-            div.textContent = str;
-            return div.innerHTML;
-        }
-
-        // ─── Navigation ─────────────────────────────────────────
-        function navigateToAccount() {
-            if (!parentAccountId) return;
-            navigateToRecord("account", parentAccountId);
-        }
-
-        function navigateToRecord(entityType, recordId) {
-            if (!entityType || !recordId) return;
-            try {
-                const xrm = getXrmContext();
-                if (xrm && xrm.Navigation && xrm.Navigation.openForm) {
-                    xrm.Navigation.openForm({ entityName: entityType, entityId: recordId });
-                    return;
-                }
-            } catch (e) { /* ignore */ }
-            window.open(crmBaseUrl + "/main.aspx?etn=" + entityType + "&id=" + recordId + "&pagetype=entityrecord", "_top");
         }
 
         // ─── Inline Editing (KPI boxes) ─────────────────────────
@@ -924,17 +705,15 @@
             }
 
             try {
-                // Fetch opportunity + activity + stakeholders in parallel
-                const [oppData, lastActivity, connections] = await Promise.all([
+                // Fetch opportunity + activity in parallel
+                const [oppData, lastActivity] = await Promise.all([
                     fetchOpportunity(),
                     fetchLastActivity(),
-                    fetchStakeholders(),
                 ]);
 
                 // Render everything
                 renderOpportunity(oppData);
                 renderLastActivity(lastActivity);
-                renderStakeholders(connections);
 
                 // Show card
                 document.getElementById("loading-screen").classList.add("hidden");
