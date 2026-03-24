@@ -1,2 +1,5 @@
 node_modules/
 .msal-cache.json
+deploy.js
+package.json
+package-lock.json
