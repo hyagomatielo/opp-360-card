@@ -2,6 +2,12 @@
 
 A compact opportunity profile card designed to be embedded on the Opportunity form in Microsoft Dynamics 365 Sales. Provides key deal metrics at a glance with inline editing capabilities.
 
+## Screenshots
+
+| Opportunity Card | Embedded in Dynamics 365 |
+|:----------------:|:------------------------:|
+| ![Opp Card](img/opp-card.png) | ![Embedded](img/embedded-in-d365.png) |
+
 ## What It Does
 
 When placed on an Opportunity record, this card displays:
