@@ -447,7 +447,8 @@
 
             const origin = window.location.origin;
             if (origin.includes(".dynamics.com") || origin.includes(".crm")) return origin;
-            return "https://hyagom.crm.dynamics.com";
+            console.warn("[opp-360-card] Unable to detect Dynamics 365 client URL. This component must run as a web resource inside a Dynamics 365 form.");
+            return "";
         }
 
         // ─── API Helpers ────────────────────────────────────────
